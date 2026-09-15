@@ -22,11 +22,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include <pthread.h>
 #endif
 
-#ifdef MACOS_X
-idCVar in_rawmouse( "in_rawmouse", "0", CVAR_SYSTEM | CVAR_ARCHIVE, "Use raw mouse input if available" );
-#else
 idCVar in_rawmouse( "in_rawmouse", "1", CVAR_SYSTEM | CVAR_ARCHIVE, "Use raw mouse input if available" );
-#endif
 idCVar in_grabmouse( "in_grabmouse", "1", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_NOCHEAT, "When set, the mouse is grabbed, so input goes exclusively to this game." );
 
 extern GLFWwindow *window;

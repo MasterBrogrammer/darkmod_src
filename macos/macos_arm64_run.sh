@@ -11,7 +11,6 @@ test -x "$BIN"
 cd "$ROOT/darkmod"
 exec "$BIN" \
   +set com_smp 0 \
-  +set in_rawmouse 0 \
   +set r_fullscreen 0 \
   +set r_glCoreProfile 2 \
   +set com_skipIntroVideos 1 \
