@@ -90,6 +90,10 @@ void RenderBackend::DrawView( const viewDef_t *viewDef, bool colorIsBackground )
 	}
 	backEnd.pc.c_surfaces += viewDef->numDrawSurfs;
 
+	if ( !viewDef->viewEntitys ) {
+		RB_SetDefaultGLState();
+	}
+
 	RB_ShowOverdraw();
 
 

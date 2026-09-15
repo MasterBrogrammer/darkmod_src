@@ -366,6 +366,7 @@ RENDER BACKEND
 void GL_SetProjection( float* matrix ) {
 	qglBindBuffer( GL_UNIFORM_BUFFER, programManager->uboHandle );
 	qglBufferData( GL_UNIFORM_BUFFER, sizeof( backEnd.viewDef->projectionMatrix ), matrix, GL_DYNAMIC_DRAW );
+	qglBindBufferBase( GL_UNIFORM_BUFFER, 0, programManager->uboHandle );
 }
 
 /*
