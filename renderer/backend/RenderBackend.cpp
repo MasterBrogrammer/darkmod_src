@@ -108,7 +108,7 @@ void RenderBackend::DrawView( const viewDef_t *viewDef, bool colorIsBackground )
 	if ( viewDef->viewEntitys ) {
 		// fill the depth buffer and clear color buffer to black except on subviews
 		depthStage.DrawDepth( viewDef, drawSurfs, numDrawSurfs );
-		if( ambientOcclusion->ShouldEnableForCurrentView() ) {
+		if( !viewDef->IsLightGem() && ambientOcclusion->ShouldEnableForCurrentView() ) {
 			ambientOcclusion->ComputeSSAOFromDepth();
 		}
 		DrawShadowsAndInteractions( viewDef );
@@ -140,7 +140,7 @@ void RenderBackend::DrawView( const viewDef_t *viewDef, bool colorIsBackground )
 	lightPassesStage.DrawAllBlendLights( viewDef );
 	volumetric->RenderAll( viewDef );
 
-	if ( surfacePassesStage.NeedCurrentRenderTexture( viewDef, postprocSurfs, postprocCount ) )
+	if ( !viewDef->IsLightGem() && surfacePassesStage.NeedCurrentRenderTexture( viewDef, postprocSurfs, postprocCount ) )
 		frameBuffers->UpdateCurrentRenderCopy();
 
 	surfacePassesStage.DrawSurfaces( viewDef, postprocSurfs, postprocCount );
@@ -169,6 +169,11 @@ void RenderBackend::DrawLightgem( const viewDef_t *viewDef, byte *lightgemData )
 	
 	DrawView( viewDef, false );
 
+#ifdef MACOS_X
+	qglBindBuffer( GL_PIXEL_PACK_BUFFER, 0 );
+	qglPixelStorei( GL_PACK_ALIGNMENT, 1 );
+	qglReadPixels( 0, 0, DARKMOD_LG_RENDER_WIDTH, DARKMOD_LG_RENDER_WIDTH, GL_RGB, GL_UNSIGNED_BYTE, lightgemData );
+#else
 	{
 		TRACE_GL_SCOPE( "CopyToPbo" );
 		// asynchronously copy contents of the lightgem framebuffer to a pixel buffer
@@ -185,10 +190,13 @@ void RenderBackend::DrawLightgem( const viewDef_t *viewDef, byte *lightgemData )
 		qglBindBuffer( GL_PIXEL_PACK_BUFFER, lightgemPbos[currentLightgemPbo] );
 		qglGetBufferSubData( GL_PIXEL_PACK_BUFFER, 0, DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_BPP, lightgemData );
 	}
+#endif
 
 	qglBindBuffer( GL_PIXEL_PACK_BUFFER, 0 );
 	currentFbo->Bind();
 	frameBuffers->currentRenderFbo = renderFbo;
+	GL_ViewportRelative( 0, 0, 1, 1 );
+	GL_ScissorRelative( 0, 0, 1, 1 );
 }
 
 void RenderBackend::EndFrame() {}
