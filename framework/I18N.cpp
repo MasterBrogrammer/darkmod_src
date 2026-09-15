@@ -569,9 +569,13 @@ bool I18NLocal::SetLanguage( const char* lang, bool firstTime ) {
 		idStr filename = "strings/all.utf8lang";
 		m_Dict = LoadStringsFileUtf8(filename, lang);
 	}
-	else
+	if (!g_utf8lang.GetBool() || m_Dict.IsEmpty())
 	{
 		idStr filename = "strings/" + m_lang + ".lang";
+		if (g_utf8lang.GetBool())
+		{
+			common->Printf("I18N: strings/all.utf8lang missing, falling back to '%s'.\n", filename.c_str());
+		}
 		m_Dict.LoadLegacy(filename, m_RemapLegacy);
 	}
 
