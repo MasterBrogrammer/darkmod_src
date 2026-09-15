@@ -370,6 +370,7 @@ void			Sys_DLL_Unload(uintptr_t dllHandle);
 
 // event generation
 void			Sys_GenerateEvents( void );
+void			Sys_PollOsEvents( void );
 sysEvent_t		Sys_GetEvent( void );
 void			Sys_ClearEvents( void );
 void			Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );

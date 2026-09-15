@@ -25,6 +25,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include <fcntl.h>
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
+#include <sys/sysctl.h>
 #endif
 
 // DG: needed for Sys_ReLaunch()
@@ -91,6 +92,13 @@ uint64 Sys_ClockTicksPerSecond()
 	{
 		return ret;
 	}
+
+#ifdef __APPLE__
+	// Sys_GetClockTicks uses CLOCK_MONOTONIC nanoseconds on non-x86.
+	ret = 1000000000ull;
+	init = true;
+	return ret;
+#endif
 	
 	fd = open( "/proc/cpuinfo", O_RDONLY );
 	if( fd == -1 )
@@ -167,11 +175,40 @@ void Sys_CPUCount( int& numLogicalCPUCores, int& numPhysicalCPUCores, int& numCP
 		numPhysicalCPUCores = s_numPhysicalCPUCores;
 		numLogicalCPUCores = s_numLogicalCPUCores;
 		numCPUPackages = s_numCPUPackages;
+		return;
 	}
 	
 	s_numPhysicalCPUCores = 1;
 	s_numLogicalCPUCores = 1;
 	s_numCPUPackages = 1;
+
+#ifdef __APPLE__
+	{
+		int n = 0;
+		size_t len = sizeof( n );
+		if( sysctlbyname( "hw.physicalcpu", &n, &len, NULL, 0 ) == 0 && n > 0 ) {
+			s_numPhysicalCPUCores = n;
+		}
+		n = 0;
+		len = sizeof( n );
+		if( sysctlbyname( "hw.logicalcpu", &n, &len, NULL, 0 ) == 0 && n > 0 ) {
+			s_numLogicalCPUCores = n;
+		} else {
+			s_numLogicalCPUCores = sysconf( _SC_NPROCESSORS_CONF );
+		}
+		if( s_numPhysicalCPUCores < 1 ) {
+			s_numPhysicalCPUCores = s_numLogicalCPUCores;
+		}
+		s_numCPUPackages = 1;
+		init = true;
+		common->Printf( "sysctl CPU processors: %d\n", s_numPhysicalCPUCores );
+		common->Printf( "sysctl CPU logical cores: %d\n", s_numLogicalCPUCores );
+		numPhysicalCPUCores = s_numPhysicalCPUCores;
+		numLogicalCPUCores = s_numLogicalCPUCores;
+		numCPUPackages = s_numCPUPackages;
+		return;
+	}
+#endif
 	
 	fd = open( "/proc/cpuinfo", O_RDONLY );
 	if( fd != -1 )

@@ -798,6 +798,10 @@ void Sys_PumpEvents( void ) {
 Sys_GenerateEvents
 ================
 */
+void Sys_PollOsEvents( void ) {
+	Sys_PumpEvents();
+}
+
 void Sys_GenerateEvents( void ) {
 	static int entered = false;
 	char *s;

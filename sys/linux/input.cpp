@@ -18,6 +18,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "framework/KeyInput.h"
 
 #include <GLFW/glfw3.h>
+#ifdef __APPLE__
+#include <pthread.h>
+#endif
 
 #ifdef MACOS_X
 idCVar in_rawmouse( "in_rawmouse", "0", CVAR_SYSTEM | CVAR_ARCHIVE, "Use raw mouse input if available" );
@@ -281,13 +284,26 @@ void Sys_AdjustMouseMovement(float &dx, float &dy) {
 Posix_PollInput
 ==========================
 */
+void Sys_PollOsEvents() {
+	if ( !window ) {
+		return;
+	}
+	glfwPollEvents();
+}
+
 void Posix_PollInput() {
 	if ( !window ) {
 		return;
 	}
 
 	mouse_scroll = 0;
+#ifdef __APPLE__
+	if ( pthread_main_np() ) {
+		glfwPollEvents();
+	}
+#else
 	glfwPollEvents();
+#endif
 
 	if ( !Posix_CanAddMousePollEvent() )
 		return;

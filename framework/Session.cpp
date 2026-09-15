@@ -15,6 +15,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "precompiled.h"
 #pragma hdrstop
+#include <chrono>
 
 #include "Session_local.h"
 #include "Common.h"
@@ -3170,7 +3171,14 @@ void idSessionLocal::WaitForFrontendCompletion() {
 		if( r_showSmp.GetBool() )
 			backEnd.pc.waitedFor = frontendActiveNow ? 'F' : '.';
 		while( frontendActiveNow ) {
+#ifdef MACOS_X
+			lock.unlock();
+			Sys_PollOsEvents();
+			lock.lock();
+			signalMainThread.wait_for( lock, std::chrono::milliseconds( 1 ) );
+#else
 			signalMainThread.wait( lock );
+#endif
 		}
 
 		if( frontendException ) {

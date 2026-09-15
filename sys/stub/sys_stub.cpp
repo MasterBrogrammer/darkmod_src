@@ -73,6 +73,9 @@ char *Sys_GetClipboardData( void ) {
 void Sys_GenerateEvents( void ) {
 }
 
+void Sys_PollOsEvents( void ) {
+}
+
 void Sys_Init( void ) {
 }
 
