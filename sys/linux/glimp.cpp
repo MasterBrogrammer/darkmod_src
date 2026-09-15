@@ -228,6 +228,8 @@ int GLX_Init(glimpParms_t a) {
 	glfwSetWindowCloseCallback( window, close_callback );
 	glfwSetWindowSizeLimits( window, 200, 200, GLFW_DONT_CARE, GLFW_DONT_CARE );
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval( r_swapInterval.GetInteger() );
+	r_swapInterval.ClearModified();
 
 	{
 		int fbw = 0, fbh = 0, ww = 0, wh = 0;
