@@ -86,6 +86,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 	#define CPU_EASYARGS				0
 #elif defined(__i386__)
 	#define CPU_EASYARGS				1
+#else
+	#define CPU_EASYARGS				0
 #endif
 
 #ifdef __MWERKS__
@@ -107,6 +109,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #define ID_INLINE_EXTERN				extern inline //anon
 #define assertmem( x, y )
+
+#define ID_NOINLINE						__attribute__((noinline))
 
 #define THREAD_RETURN_TYPE				void *
 
@@ -192,7 +196,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #endif
 
 #if !defined(ID_LITTLE_ENDIAN) && !defined(ID_BIG_ENDIAN)
-	#if defined(__i386__) || defined(__x86_64__)
+	#if defined(__i386__) || defined(__x86_64__) || defined(__aarch64__) || defined(__arm64__)
 		#define ID_LITTLE_ENDIAN		1
 	#elif defined(__ppc__)
 		#define ID_BIG_ENDIAN			1

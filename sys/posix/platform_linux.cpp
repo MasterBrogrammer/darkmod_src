@@ -23,6 +23,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
 
 // DG: needed for Sys_ReLaunch()
 #include <dirent.h>
@@ -49,19 +52,25 @@ Sys_EXEPath
 const char* Sys_EXEPath()
 {
 	static char	buf[ 1024 ];
+	buf[ 0 ] = '\0';
+#ifdef __APPLE__
+	uint32_t size = sizeof( buf );
+	if( _NSGetExecutablePath( buf, &size ) != 0 )
+	{
+		Sys_Printf( "buffer too small to store exe path, need size %u\n", size );
+		buf[ 0 ] = '\0';
+	}
+#else
 	idStr		linkpath;
 	int			len;
-	
-	buf[ 0 ] = '\0';
 	sprintf( linkpath, "/proc/%d/exe", getpid() );
 	len = readlink( linkpath.c_str(), buf, sizeof( buf ) );
 	if( len == -1 )
 	{
 		Sys_Printf( "couldn't stat exe path link %s\n", linkpath.c_str() );
-		// RB: fixed array subscript is below array bounds
 		buf[ 0 ] = '\0';
-		// RB end
 	}
+#endif
 	return buf;
 }
 

@@ -27,7 +27,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include <errno.h>
 #include <sys/select.h>
 #include <net/if.h>
-#if MACOS_X
+#if defined(__APPLE__)
 #include <ifaddrs.h>
 #endif
 
@@ -259,7 +259,7 @@ void Sys_InitNetworking(void)
 	// haven't been able to clearly pinpoint which standards or RFCs define SIOCGIFCONF, SIOCGIFADDR, SIOCGIFNETMASK ioctls
 	// it seems fairly widespread, in Linux kernel ioctl, and in BSD .. so let's assume it's always available on our targets
 
-#if MACOS_X
+#if defined(MACOS_X)
 	unsigned int ip, mask;
 	struct ifaddrs *ifap, *ifp;
 	

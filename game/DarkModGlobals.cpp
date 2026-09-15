@@ -59,7 +59,7 @@ VersionCheckResult CompareVersion(int major, int minor, int toMajor, int toMinor
 // Name of the logfile to use for Dark Mod logging
 #if defined(__linux__)
 const char* DARKMOD_LOGFILE = "/tmp/DarkMod.log";
-#elif MACOS_X
+#elif defined(MACOS_X)
 const char* DARKMOD_LOGFILE = "~/Library/Logs/DarkMod.log";
 #else // Windows
 const char* DARKMOD_LOGFILE = "DarkMod.temp.log";
@@ -240,7 +240,7 @@ void CGlobal::Init()
 	std::string iniPath = GetDarkmodPath();
 	iniPath += "\\darkmod.ini";
 
-#elif MACOS_X
+#elif defined(MACOS_X)
 
 	std::string iniPath = GetDarkmodPath();
 	iniPath += "/darkmod.ini";

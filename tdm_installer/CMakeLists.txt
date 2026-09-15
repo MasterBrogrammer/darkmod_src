@@ -66,7 +66,7 @@ if(MSVC)
     add_compile_options("/W2")
     add_compile_options("$<$<CONFIG:Release>:/Zi>")
     string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " /OPT:REF /DEBUG")
-elseif(UNIX)
+elseif(UNIX AND NOT APPLE)
     string(APPEND CMAKE_EXE_LINKER_FLAGS " -no-pie")
 endif()
 
@@ -75,7 +75,16 @@ add_executable(tdm_installer WIN32 ${sources})
 target_include_directories(tdm_installer PRIVATE zipsync)
 target_link_libraries(tdm_installer PRIVATE libzipsync libzipsyncextra fltk::fltk)
 
-if(UNIX)
+if(APPLE)
+    target_link_libraries(tdm_installer PRIVATE m dl pthread
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework CoreFoundation"
+        "-framework CoreGraphics"
+        "-framework CoreVideo"
+        "-framework AppKit"
+    )
+elseif(UNIX)
     target_link_libraries(fltk::fltk INTERFACE X11)             # make sure CMake links X11 after fltk
     target_link_libraries(tdm_installer PRIVATE m dl pthread)   # fltk -> *
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -86,7 +95,14 @@ elseif(MSVC)
     target_compile_definitions(tdm_installer PRIVATE _CRT_SECURE_NO_DEPRECATE)
 endif()
 
-if(UNIX)
+if(APPLE)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+        set(FILENAME_SUFFIX ".macos.arm64")
+    else()
+        set(FILENAME_SUFFIX ".macos")
+    endif()
+    set(OUTPUT_SUFFIX "${FILENAME_SUFFIX}")
+elseif(UNIX)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(FILENAME_SUFFIX ".linux64")
         set(OUTPUT_SUFFIX "${FILENAME_SUFFIX}")

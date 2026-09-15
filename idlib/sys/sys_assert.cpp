@@ -14,6 +14,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 ******************************************************************************/
 #pragma hdrstop
 #include "precompiled.h"
+#ifndef _WIN32
+#include <signal.h>
+#endif
 
 /*
 ================================================================================================

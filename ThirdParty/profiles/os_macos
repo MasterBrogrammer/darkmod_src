@@ -1,0 +1,13 @@
+[settings]
+os=Macos
+compiler=apple-clang
+compiler.version=21
+compiler.libcxx=libc++
+compiler.cppstd=gnu17
+
+[buildenv]
+# CommandLineTools SDK 26.x marks pipe2 as macOS 27.0. Curl 8.19 then
+# fails -Werror=unguarded-availability-new. Force the pipe() fallback.
+ac_cv_func_pipe2=no
+CFLAGS=-Wno-error=unguarded-availability-new
+CXXFLAGS=-Wno-error=unguarded-availability-new
