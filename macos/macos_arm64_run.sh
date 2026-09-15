@@ -6,6 +6,7 @@ BIN="$ROOT/darkmod/thedarkmod.arm64"
 test -x "$BIN"
 cd "$ROOT/darkmod"
 exec "$BIN" \
+  +set com_smp 0 \
   +set r_fullscreen 0 \
   +set r_glCoreProfile 2 \
   +set com_skipIntroVideos 1 \
