@@ -24,11 +24,10 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #ifdef MACOS_X
 idCVar in_rawmouse( "in_rawmouse", "0", CVAR_SYSTEM | CVAR_ARCHIVE, "Use raw mouse input if available" );
-idCVar in_grabmouse( "in_grabmouse", "0", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_NOCHEAT, "When set, the mouse is grabbed, so input goes exclusively to this game." );
 #else
 idCVar in_rawmouse( "in_rawmouse", "1", CVAR_SYSTEM | CVAR_ARCHIVE, "Use raw mouse input if available" );
-idCVar in_grabmouse( "in_grabmouse", "1", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_NOCHEAT, "When set, the mouse is grabbed, so input goes exclusively to this game." );
 #endif
+idCVar in_grabmouse( "in_grabmouse", "1", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_NOCHEAT, "When set, the mouse is grabbed, so input goes exclusively to this game." );
 
 extern GLFWwindow *window;
 
@@ -245,6 +244,9 @@ void Sys_InitInput(void) {
 	if ( glfwRawMouseMotionSupported() ) {
 		glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, in_rawmouse.GetBool() ? GLFW_TRUE : GLFW_FALSE);
 	}
+#ifdef __APPLE__
+	Sys_GrabMouseCursor( true );
+#endif
 	common->Printf( "------------------------------------\n" );
 }
 
@@ -257,6 +259,15 @@ void Sys_GrabMouseCursor( bool grabIt ) {
 	if ( !window ) {
 		return;
 	}
+
+#ifdef __APPLE__
+	if ( glConfig.isFullscreen && !grabIt ) {
+		return;
+	}
+	glfwSetInputMode( window, GLFW_CURSOR,
+		( grabIt && in_grabmouse.GetBool() ) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_HIDDEN );
+	return;
+#endif
 
 	if ( glConfig.isFullscreen ) {
 		if ( !grabIt ) {

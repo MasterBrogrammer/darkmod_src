@@ -238,6 +238,10 @@ int GLX_Init(glimpParms_t a) {
 		GLimp_ApplyFramebufferSize( fbw, fbh );
 		common->Printf( "GLFW window %d x %d, framebuffer %d x %d, vid %d x %d\n",
 			ww, wh, fbw, fbh, glConfig.vidWidth, glConfig.vidHeight );
+		if ( fbw != ww || fbh != wh ) {
+			common->Printf( "Retina backing %d x %d with window %d x %d, mouse scale %.2f x %.2f\n",
+				fbw, fbh, ww, wh, g_contentScaleX, g_contentScaleY );
+		}
 	}
 
 	glConfig.isFullscreen = a.fullScreen;

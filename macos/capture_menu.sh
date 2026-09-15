@@ -31,7 +31,6 @@ rm -f "$SHOT" "$BOUNDS"
 cd "$GAME"
 "$BIN" \
 	+set com_smp 0 \
-	+set in_grabmouse 0 \
 	+set in_rawmouse 0 \
 	+set r_fullscreen 0 \
 	+set r_glCoreProfile 2 \
