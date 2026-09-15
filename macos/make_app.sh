@@ -36,25 +36,14 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
 	<key>NSHighResolutionCapable</key>
-	<true/>
+	<false/>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 </dict>
 </plist>
 PLIST
 
-cat > "$MACOS/TheDarkMod" <<'LAUNCH'
-#!/bin/bash
-set -euo pipefail
-GAMEDIR="$(cd "$(dirname "$0")/../../.." && pwd)"
-cd "$GAMEDIR"
-exec "$GAMEDIR/thedarkmod.arm64" \
-  +set com_smp 0 \
-  +set in_grabmouse 0 \
-  +set in_rawmouse 0 \
-  +set r_fullscreen 0 \
-  "$@"
-LAUNCH
+cp "$BIN" "$MACOS/TheDarkMod"
 chmod +x "$MACOS/TheDarkMod"
 
 if [[ -f "$GAME/TDM_icon.ico" ]]; then

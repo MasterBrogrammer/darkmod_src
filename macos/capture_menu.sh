@@ -3,7 +3,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 GAME="$ROOT/darkmod"
-BIN="$GAME/thedarkmod.arm64"
+BIN="$GAME/TheDarkMod.app/Contents/MacOS/TheDarkMod"
+if [[ ! -x "$BIN" ]]; then
+	BIN="$GAME/thedarkmod.arm64"
+fi
 STAMP="${1:-capture}"
 AUDIT="$ROOT/.audit"
 LOG="$AUDIT/${STAMP}.log"
@@ -15,14 +18,16 @@ test -x "$BIN"
 mkdir -p "$AUDIT"
 
 # Exact-name only. Never pkill -f.
-if pgrep -x thedarkmod.arm64 >/dev/null; then
-	pkill -x thedarkmod.arm64 || true
-	sleep 1
-fi
-if pgrep -x thedarkmod.arm64 >/dev/null; then
-	echo "FAILED: leftover thedarkmod.arm64" >&2
-	exit 1
-fi
+for name in TheDarkMod thedarkmod.arm64; do
+	if pgrep -x "$name" >/dev/null; then
+		pkill -x "$name" || true
+		sleep 1
+	fi
+	if pgrep -x "$name" >/dev/null; then
+		echo "FAILED: leftover $name" >&2
+		exit 1
+	fi
+done
 
 : >"$LOG"
 rm -f "$SHOT" "$BOUNDS"

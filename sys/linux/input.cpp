@@ -33,6 +33,9 @@ extern GLFWwindow *window;
 
 static double mouse_scroll = 0;
 static double mouse_scroll_prev = 0;
+static bool mouse_prev_valid = false;
+static double mouse_prev_x = 0;
+static double mouse_prev_y = 0;
 
 static byte MapKeySym(int key) {
 	switch (key) {
@@ -189,13 +192,17 @@ void mouse_position_callback( GLFWwindow *, double xpos, double ypos ) {
 
 	GLimp_WindowToFramebuffer( xpos, ypos );
 
-	static double prevX = glConfig.vidWidth / 2;
-	static double prevY = glConfig.vidHeight / 2;
+	if ( !mouse_prev_valid ) {
+		mouse_prev_x = xpos;
+		mouse_prev_y = ypos;
+		mouse_prev_valid = true;
+		return;
+	}
 
-	int dx = (int)( xpos - prevX );
-	int dy = (int)( ypos - prevY );
-	prevX = xpos;
-	prevY = ypos;
+	int dx = (int)( xpos - mouse_prev_x );
+	int dy = (int)( ypos - mouse_prev_y );
+	mouse_prev_x = xpos;
+	mouse_prev_y = ypos;
 
 	Posix_QueEvent( SE_MOUSE, dx, dy, 0, NULL);
 	Posix_AddMousePollEvent( M_DELTAX, dx );
@@ -261,11 +268,9 @@ void Sys_GrabMouseCursor( bool grabIt ) {
 	}
 
 #ifdef __APPLE__
-	if ( glConfig.isFullscreen && !grabIt ) {
-		return;
-	}
-	glfwSetInputMode( window, GLFW_CURSOR,
-		( grabIt && in_grabmouse.GetBool() ) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_HIDDEN );
+	(void)grabIt;
+	glfwSetInputMode( window, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
+	mouse_prev_valid = false;
 	return;
 #endif
 
