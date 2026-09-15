@@ -16,6 +16,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #define __LINUX_LOCAL_H__
 
 extern glconfig_t glConfig;
+void GLimp_WindowToFramebuffer( double &x, double &y );
 
 /*  (no longer needed after migration to GLFW)
 //#define ID_ENABLE_DGA

@@ -188,6 +188,8 @@ void mouse_position_callback( GLFWwindow *, double xpos, double ypos ) {
 	if ( !Posix_CanAddMousePollEvent() )
 		return;
 
+	GLimp_WindowToFramebuffer( xpos, ypos );
+
 	static double prevX = glConfig.vidWidth / 2;
 	static double prevY = glConfig.vidHeight / 2;
 
