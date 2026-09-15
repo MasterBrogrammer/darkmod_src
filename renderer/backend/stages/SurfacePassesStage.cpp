@@ -530,11 +530,17 @@ void SurfacePassesStage::DrawCustomShader( const drawSurf_t *drawSurf, const sha
 	// also copied an extra row and column for the bilerp
 	uniforms->scalePotToWindow.Set( 1, 1, 0, 1 );
 	// window coord to 0.0 to 1.0 conversion
-	uniforms->scaleWindowToUnit.Set(
-		1.0f / frameBuffers->activeFbo->Width(),
-		1.0f / frameBuffers->activeFbo->Height(),
-		0, 1
-	);
+	{
+		int rw = globalImages->currentRenderImage->uploadWidth;
+		int rh = globalImages->currentRenderImage->uploadHeight;
+		if ( rw <= 0 ) {
+			rw = frameBuffers->activeFbo->Width();
+		}
+		if ( rh <= 0 ) {
+			rh = frameBuffers->activeFbo->Height();
+		}
+		uniforms->scaleWindowToUnit.Set( 1.0f / rw, 1.0f / rh, 0, 1 );
+	}
 	// #3877: Allow shaders to access depth buffer.
 	// Two useful ratios are packed into this parm: [0] and [1] hold the x,y multipliers you need to map a screen
 	// coordinate (fragment position) to the depth image: those are simply the reciprocal of the depth

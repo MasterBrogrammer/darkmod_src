@@ -22,6 +22,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "sys/sys_types.h"
 #include "sys/sys_threading.h"
 
+// Parse libc++ <random> before Math.h #undef INFINITY. Apple's clamp_to_integral.h needs the C macro.
+#include <random>
+
 //-----------------------------------------------------
 
 #undef min
@@ -139,5 +142,10 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 #undef min
 #undef max
 #include <algorithm>	// for min / max / swap
+
+#ifdef __APPLE__
+#undef ALIGN
+#define ALIGN( x, a ) ID_ALIGN( x, a )
+#endif
 
 #endif /* !__PRECOMPILED_H__ */

@@ -101,6 +101,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #define CPUSTRING						"x86_64"
 #elif defined(__e2k__)
 #define CPUSTRING						"e2k"
+#elif defined(__aarch64__) || defined(__arm64__)
+#define CPUSTRING						"arm64"
 #else
 #error unknown CPU
 #endif
@@ -160,12 +162,14 @@ Defines and macros usable in all code
 ================================================================================================
 */
 
-#define ALIGN( x, a ) ( ( ( x ) + ((a)-1) ) - ( ( (x) + (a) - 1 ) % (a) ) )
-//#define ALIGN( x, a ) ( ( ( x ) + ((a)-1) ) & ~((a)-1) )
+#define ID_ALIGN( x, a ) ( ( ( x ) + ((a)-1) ) - ( ( (x) + (a) - 1 ) % (a) ) )
+#ifndef __APPLE__
+#define ALIGN( x, a ) ID_ALIGN( x, a )
+#endif
 
 // RB: changed UINT_PTR to uintptr_t
-#define _alloca16( x )					((void *)ALIGN( (uintptr_t)_alloca( ALIGN( x, 16 ) + 16 ), 16 ) )
-#define _alloca128( x )					((void *)ALIGN( (uintptr_t)_alloca( ALIGN( x, 128 ) + 128 ), 128 ) )
+#define _alloca16( x )					((void *)ID_ALIGN( (uintptr_t)_alloca( ID_ALIGN( x, 16 ) + 16 ), 16 ) )
+#define _alloca128( x )					((void *)ID_ALIGN( (uintptr_t)_alloca( ID_ALIGN( x, 128 ) + 128 ), 128 ) )
 // RB end
 
 #define likely( x )	( x )

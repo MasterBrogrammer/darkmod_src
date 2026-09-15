@@ -221,7 +221,7 @@ void FrameBufferManager::ResolvePrimary( GLbitfield mask, GLenum filter ) {
 
 void FrameBufferManager::UpdateCurrentRenderCopy() {
 	TRACE_GL_SCOPE( "UpdateCurrentRenderCopy" );
-	currentRenderFbo->BlitTo( resolveFbo, GL_COLOR_BUFFER_BIT, GL_NEAREST );
+	primaryFbo->BlitTo( resolveFbo, GL_COLOR_BUFFER_BIT, GL_NEAREST );
 	backEnd.pc.c_copyFrameBuffer++;
 }
 

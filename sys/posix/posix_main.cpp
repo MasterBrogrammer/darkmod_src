@@ -33,6 +33,10 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "posix_public.h"
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 #define					MAX_OSPATH 256
 #define					COMMAND_HISTORY 64
 
@@ -523,6 +527,21 @@ void Posix_EarlyInit( void ) {
 	memset( &asyncThread, 0, sizeof( asyncThread ) );
 	asyncThreadShutdown = false;
 	exit_spawn[0] = '\0';
+#ifdef __APPLE__
+	{
+		char exe[1024];
+		uint32_t sz = sizeof( exe );
+		if ( _NSGetExecutablePath( exe, &sz ) == 0 ) {
+			idStr path( exe );
+			int macOS = path.Find( "/Contents/MacOS/" );
+			if ( macOS >= 0 ) {
+				idStr gameDir = path.Left( macOS );
+				gameDir.StripFilename();
+				chdir( gameDir.c_str() );
+			}
+		}
+	}
+#endif
 	Posix_InitSigs();
 	// set the base time
 	Sys_Milliseconds();

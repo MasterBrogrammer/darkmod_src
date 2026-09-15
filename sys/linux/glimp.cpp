@@ -118,9 +118,28 @@ void close_callback( GLFWwindow * ) {
 	common->Quit();
 }
 
+static float g_contentScaleX = 1.f;
+static float g_contentScaleY = 1.f;
+
+void GLimp_WindowToFramebuffer( double &x, double &y ) {
+	x *= g_contentScaleX;
+	y *= g_contentScaleY;
+}
+
+static void GLimp_ApplyFramebufferSize( int fbWidth, int fbHeight ) {
+	if ( fbWidth <= 0 || fbHeight <= 0 || !window ) {
+		return;
+	}
+	int winW = 0, winH = 0;
+	glfwGetWindowSize( window, &winW, &winH );
+	g_contentScaleX = ( winW > 0 ) ? (float)fbWidth / (float)winW : 1.f;
+	g_contentScaleY = ( winH > 0 ) ? (float)fbHeight / (float)winH : 1.f;
+	glConfig.vidWidth = fbWidth;
+	glConfig.vidHeight = fbHeight;
+}
+
 void resize_callback( GLFWwindow *, int width, int height ) {
-	glConfig.vidWidth = width;
-	glConfig.vidHeight = height;
+	GLimp_ApplyFramebufferSize( width, height );
 	cvarSystem->Find( "r_fboResolution" )->SetModified();
 }
 
@@ -209,6 +228,21 @@ int GLX_Init(glimpParms_t a) {
 	glfwSetWindowCloseCallback( window, close_callback );
 	glfwSetWindowSizeLimits( window, 200, 200, GLFW_DONT_CARE, GLFW_DONT_CARE );
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval( r_swapInterval.GetInteger() );
+	r_swapInterval.ClearModified();
+
+	{
+		int fbw = 0, fbh = 0, ww = 0, wh = 0;
+		glfwGetWindowSize( window, &ww, &wh );
+		glfwGetFramebufferSize( window, &fbw, &fbh );
+		GLimp_ApplyFramebufferSize( fbw, fbh );
+		common->Printf( "GLFW window %d x %d, framebuffer %d x %d, vid %d x %d\n",
+			ww, wh, fbw, fbh, glConfig.vidWidth, glConfig.vidHeight );
+		if ( fbw != ww || fbh != wh ) {
+			common->Printf( "Retina backing %d x %d with window %d x %d, mouse scale %.2f x %.2f\n",
+				fbw, fbh, ww, wh, g_contentScaleX, g_contentScaleY );
+		}
+	}
 
 	glConfig.isFullscreen = a.fullScreen;
 	

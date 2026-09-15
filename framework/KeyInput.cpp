@@ -27,10 +27,6 @@ typedef struct {
 // keys that can be set without a special name
 static const char unnamedkeys[] = "*,-=./[\\]1234567890abcdefghijklmnopqrstuvwxyz";
 
-#if MACOS_X
-const char* OSX_GetLocalizedString( const char* );
-#endif
-
 // names not in this list can either be lowercase ascii, or '0xnn' hex sequences
 // TODO: add CTRL RIGHT, SHIFT RIGHT
 keyname_t keynames[] =
@@ -327,22 +323,7 @@ const char *idKeyInput::KeyNumToString( int keynum, bool localized ) {
 			if ( !localized || kn->strId[0] != '#' ) {
 				return kn->name;
 			} else {
-#if MACOS_X
-				
-				switch ( kn->keynum ) {
-					case K_ENTER:		
-					case K_BACKSPACE:	
-					case K_ALT:			
-					case K_INS:
-					case K_PRINT_SCR:
-						return OSX_GetLocalizedString( kn->name );
-						break;
-					default :
-						return common->Translate( kn->strId ); break;
-				}
-#else
 				return common->Translate( kn->strId );
-#endif
 			}
 		}
 	}

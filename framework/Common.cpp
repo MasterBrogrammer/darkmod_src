@@ -90,7 +90,8 @@ idCVar com_error_crash( "com_error_crash", "0", CVAR_INTEGER | CVAR_SYSTEM, "cra
 
 #define ASYNCSOUND_INFO "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix"
 #if defined( MACOS_X )
-idCVar com_asyncSound( "com_asyncSound", "2", CVAR_INTEGER|CVAR_SYSTEM|CVAR_ROM, ASYNCSOUND_INFO );
+// 2 was CoreAudio callback mixing in sys/osx. GLFW + OpenAL Soft uses the Linux write mixer.
+idCVar com_asyncSound( "com_asyncSound", "3", CVAR_INTEGER|CVAR_SYSTEM|CVAR_ROM, ASYNCSOUND_INFO );
 #elif defined( __linux__ )
 idCVar com_asyncSound( "com_asyncSound", "3", CVAR_INTEGER|CVAR_SYSTEM|CVAR_ROM, ASYNCSOUND_INFO );
 #else

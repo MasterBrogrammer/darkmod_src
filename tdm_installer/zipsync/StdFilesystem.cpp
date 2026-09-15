@@ -1,9 +1,14 @@
 #include "StdFilesystem.h"
 
-// TODO: switch to std::filesystem when it includes something like file_time_type::clock::to_time_t
+#ifdef __APPLE__
+#include <filesystem>
+#include <chrono>
+namespace stdfsys = std::filesystem;
+#else
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include <experimental/filesystem>
 namespace stdfsys = std::experimental::filesystem;
+#endif
 
 namespace stdext {
     struct path_impl : public stdfsys::path {
@@ -129,7 +134,13 @@ namespace stdext {
         std::time_t res;
         try {
             auto tt = stdfsys::last_write_time(get(p));
+#ifdef __APPLE__
+            auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                tt - stdfsys::file_time_type::clock::now() + std::chrono::system_clock::now());
+            res = std::chrono::system_clock::to_time_t(sctp);
+#else
             res = stdfsys::file_time_type::clock::to_time_t(tt);
+#endif
         }
         catch(stdfsys::filesystem_error &e) { throw filesystem_error(e.what(), e.code()); }
         return res;

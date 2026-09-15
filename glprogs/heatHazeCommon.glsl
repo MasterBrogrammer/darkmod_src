@@ -56,8 +56,9 @@ vec3 heatHazeFragmentShader(
 	// we can easily unpack XY coords regardless of RGTC, but Z coordinate is not available
 	vec2 displacementTex = 2 * displacementRawTex.xy - vec2(1);
 
-	// calculate the screen texcoord in the 0.0 to 1.0 range
-	vec2 originalPos = glFragCoord.xy * invRenderSize;
+	// Sample _currentRender in its own texel space. invRenderSize is the
+	// bound FBO; on Retina that can disagree with the copy's resolution.
+	vec2 originalPos = glFragCoord.xy / vec2(textureSize(currentRender, 0));
 
 	// total displacement for sampling frame
 	vec2 displacement = displacementTex * deformationMagnitude;

@@ -68,7 +68,6 @@ if (UNIX)
 			-fno-omit-frame-pointer         # crashdumps!
 			-fmessage-length=0
 			-fvisibility=hidden
-			-std=c++17
 	)
 	# enable SSE2 if supported (mainly 32-bit x86)
 	check_cxx_compiler_flag(-msse2 MSSE2_SUPPORTED)
@@ -99,8 +98,10 @@ if (UNIX)
 		add_compile_options(-fsanitize=address)
 	endif()
 
-	# ensure threading support in X
-	add_compile_definitions(XTHREADS)
+	if(NOT APPLE)
+		# leftover from the X11 backend; GLFW Cocoa does not need it
+		add_compile_definitions(XTHREADS)
+	endif()
 elseif (MSVC)
 	add_compile_definitions("WIN32" _WINDOWS
 			_CRT_SECURE_NO_DEPRECATE
@@ -189,6 +190,12 @@ if (UNIX)
 			"sys/posix/platform_osx.cpp"
 			FROM TDM_SOURCE_FILES
 	)
+	if (APPLE)
+		ucm_remove_files(
+			"renderer/backend/qgl/glad_glx.c"
+			FROM TDM_SOURCE_FILES
+		)
+	endif()
 elseif (WIN32)
 	ucm_add_dirs("sys/win32" TO TDM_SOURCE_FILES RECURSIVE)
 	ucm_add_files("sys/win32/rc/doom.rc" TO TDM_SOURCE_FILES)
@@ -238,7 +245,15 @@ if (ENABLE_TRACY)
 	)
 endif()
 
-if (UNIX)
+if (APPLE)
+	if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+		set_target_properties(TheDarkMod PROPERTIES OUTPUT_NAME "thedarkmod.arm64")
+	elseif (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set_target_properties(TheDarkMod PROPERTIES OUTPUT_NAME "thedarkmod.osx64")
+	else ()
+		set_target_properties(TheDarkMod PROPERTIES OUTPUT_NAME "thedarkmod.osx")
+	endif ()
+elseif (UNIX)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set_target_properties(TheDarkMod PROPERTIES OUTPUT_NAME "thedarkmod.x64")
 	else ()
@@ -252,8 +267,13 @@ elseif (MSVC)
 	endif ()
 endif ()
 
-# ffmpeg dep was compiled without -fPIC, so need to disable PIE on 64bit builds
-set_target_properties(TheDarkMod PROPERTIES POSITION_INDEPENDENT_CODE OFF)	# see also CMP0083
+# ffmpeg dep was compiled without -fPIC on Linux, so disable PIE there.
+# Mach-O arm64 is PIC; leaving PIE off breaks the macOS link.
+if(APPLE)
+	set_target_properties(TheDarkMod PROPERTIES POSITION_INDEPENDENT_CODE ON)
+else()
+	set_target_properties(TheDarkMod PROPERTIES POSITION_INDEPENDENT_CODE OFF)	# see also CMP0083
+endif()
 
 # use static runtime (except for glibc)
 if (MSVC)
@@ -301,6 +321,18 @@ target_link_libraries(TheDarkMod
 if (WIN32)
 	target_link_libraries(TheDarkMod ws2_32 iphlpapi winmm bcrypt dinput8 dbghelp)
 	set_target_properties(TheDarkMod PROPERTIES WIN32_EXECUTABLE TRUE)
+elseif (APPLE)
+	target_link_libraries(TheDarkMod pthread dl
+		"-framework Cocoa"
+		"-framework IOKit"
+		"-framework CoreFoundation"
+		"-framework CoreVideo"
+		"-framework OpenGL"
+		"-framework QuartzCore"
+	)
+	if(ASAN)
+		target_link_libraries(TheDarkMod -fsanitize=address)
+	endif()
 elseif (UNIX)
 	target_link_libraries(TheDarkMod pthread dl stdc++fs X11 Xext Xxf86vm)
 
@@ -330,7 +362,7 @@ if (COPY_EXE)
 			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:TheDarkMod> "${GAME_DIR}"
 			COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/glprogs" "${GAME_DIR}/glprogs"
 	)
-	if (UNIX)
+	if (UNIX AND NOT APPLE)
 		add_custom_command(
 				TARGET TheDarkMod POST_BUILD
 				COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:TheDarkMod>.debug "${GAME_DIR}"

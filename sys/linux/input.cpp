@@ -18,6 +18,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "framework/KeyInput.h"
 
 #include <GLFW/glfw3.h>
+#ifdef __APPLE__
+#include <pthread.h>
+#endif
 
 idCVar in_rawmouse( "in_rawmouse", "1", CVAR_SYSTEM | CVAR_ARCHIVE, "Use raw mouse input if available" );
 idCVar in_grabmouse( "in_grabmouse", "1", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_NOCHEAT, "When set, the mouse is grabbed, so input goes exclusively to this game." );
@@ -26,6 +29,9 @@ extern GLFWwindow *window;
 
 static double mouse_scroll = 0;
 static double mouse_scroll_prev = 0;
+static bool mouse_prev_valid = false;
+static double mouse_prev_x = 0;
+static double mouse_prev_y = 0;
 
 static byte MapKeySym(int key) {
 	switch (key) {
@@ -180,13 +186,19 @@ void mouse_position_callback( GLFWwindow *, double xpos, double ypos ) {
 	if ( !Posix_CanAddMousePollEvent() )
 		return;
 
-	static double prevX = glConfig.vidWidth / 2;
-	static double prevY = glConfig.vidHeight / 2;
+	GLimp_WindowToFramebuffer( xpos, ypos );
 
-	int dx = (int)( xpos - prevX );
-	int dy = (int)( ypos - prevY );
-	prevX = xpos;
-	prevY = ypos;
+	if ( !mouse_prev_valid ) {
+		mouse_prev_x = xpos;
+		mouse_prev_y = ypos;
+		mouse_prev_valid = true;
+		return;
+	}
+
+	int dx = (int)( xpos - mouse_prev_x );
+	int dy = (int)( ypos - mouse_prev_y );
+	mouse_prev_x = xpos;
+	mouse_prev_y = ypos;
 
 	Posix_QueEvent( SE_MOUSE, dx, dy, 0, NULL);
 	Posix_AddMousePollEvent( M_DELTAX, dx );
@@ -235,6 +247,9 @@ void Sys_InitInput(void) {
 	if ( glfwRawMouseMotionSupported() ) {
 		glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, in_rawmouse.GetBool() ? GLFW_TRUE : GLFW_FALSE);
 	}
+#ifdef __APPLE__
+	Sys_GrabMouseCursor( true );
+#endif
 	common->Printf( "------------------------------------\n" );
 }
 
@@ -247,6 +262,13 @@ void Sys_GrabMouseCursor( bool grabIt ) {
 	if ( !window ) {
 		return;
 	}
+
+#ifdef __APPLE__
+	(void)grabIt;
+	glfwSetInputMode( window, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
+	mouse_prev_valid = false;
+	return;
+#endif
 
 	if ( glConfig.isFullscreen ) {
 		if ( !grabIt ) {
@@ -276,13 +298,26 @@ void Sys_AdjustMouseMovement(float &dx, float &dy) {
 Posix_PollInput
 ==========================
 */
+void Sys_PollOsEvents() {
+	if ( !window ) {
+		return;
+	}
+	glfwPollEvents();
+}
+
 void Posix_PollInput() {
 	if ( !window ) {
 		return;
 	}
 
 	mouse_scroll = 0;
+#ifdef __APPLE__
+	if ( pthread_main_np() ) {
+		glfwPollEvents();
+	}
+#else
 	glfwPollEvents();
+#endif
 
 	if ( !Posix_CanAddMousePollEvent() )
 		return;

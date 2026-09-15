@@ -48,6 +48,16 @@ class TdmDepends(ConanFile):
             else:
                 # pass package options from yaml
                 options = doc["options"].get(pkgname, {})
+                osname = str(self.settings.os)
+                arch = str(self.settings.arch)
+                if pkgname == "glfw" and osname == "Macos":
+                    # Cocoa is the GLFW backend on macOS; X11/Wayland options do not exist there
+                    print("OPT skip glfw x11/wayland on Macos")
+                    continue
+                if pkgname == "blake2" and arch not in ("x86", "x86_64"):
+                    print("OPT blake2 SSE = None on %s" % arch)
+                    setattr(self.options[pkgname], "SSE", "None")
+                    continue
                 for k,v in options.items():
                     print("OPT %s = %s on %s" % (k, v, pkgname))
                     setattr(self.options[pkgname], k, v)
